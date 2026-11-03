@@ -1,0 +1,45 @@
+name: Release
+
+# Ao enviar uma tag "vX.Y.Z", compila, testa e cria um RASCUNHO de release com os executáveis.
+# O rascunho fica visível só para quem tem acesso ao repositório até ser publicado manualmente.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      - name: Gerar instalador e executável portátil
+        run: |
+          npm run dist -- --publish never
+          npm run portable -- --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Criar rascunho de release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: Reminder Desk ${{ github.ref_name }}
+          body_path: docs/release-notes/${{ github.ref_name }}.md
+          files: |
+            dist/Reminder-Desk-Setup-*.exe
+            dist/Reminder-Desk-*-portable.exe
+          fail_on_unmatched_files: true
