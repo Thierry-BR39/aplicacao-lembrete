@@ -1,0 +1,48 @@
+{
+  "name": "reminderdesk",
+  "productName": "Reminder Desk",
+  "version": "1.0.0",
+  "description": "Lembretes visuais em post-its flutuantes para Windows.",
+  "main": "src/app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "icons": "node scripts/make-icons.js",
+    "dist": "electron-builder --win nsis",
+    "pack": "electron-builder --win dir",
+    "portable": "electron-builder --win portable"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thierry-BR39/aplicacao-lembrete.git"
+  },
+  "author": "Calçados Beira Rio",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^45.2.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "br.com.beirario.reminderdesk",
+    "productName": "Reminder Desk",
+    "directories": { "output": "dist" },
+    "files": ["src/**/*", "assets/**/*", "package.json"],
+    "win": {
+      "target": ["nsis"],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Reminder Desk",
+      "artifactName": "Reminder-Desk-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Reminder-Desk-${version}-portable.${ext}"
+    }
+  }
+}

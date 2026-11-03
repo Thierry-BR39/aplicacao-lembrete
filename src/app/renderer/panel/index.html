@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reminder Desk</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Reminder Desk</span></div>
+      <nav id="nav" aria-label="Navegação principal">
+        <button class="nav-item" data-view="dashboard">Painel</button>
+        <button class="nav-item" data-view="reminders">Lembretes</button>
+        <button class="nav-item" data-view="categories">Categorias</button>
+        <button class="nav-item" data-view="history">Histórico</button>
+        <button class="nav-item" data-view="settings">Configurações</button>
+      </nav>
+      <p class="sidebar-foot">Fechar esta janela mantém os lembretes ativos na bandeja do sistema.</p>
+    </aside>
+    <main id="content" class="content" tabindex="-1"></main>
+  </div>
+
+  <dialog id="reminder-dialog" aria-labelledby="reminder-dialog-title">
+    <form id="reminder-form" method="dialog" novalidate>
+      <h2 id="reminder-dialog-title">Novo lembrete</h2>
+      <p id="reminder-error" class="form-error" role="alert" hidden></p>
+
+      <label class="field">Título
+        <input id="f-title" name="title" maxlength="100" autocomplete="off" required>
+      </label>
+      <label class="field">Descrição
+        <textarea id="f-description" name="description" rows="4" maxlength="1000" placeholder="Mensagem exibida no post-it (opcional)"></textarea>
+      </label>
+      <div class="row">
+        <label class="field">Data
+          <input id="f-date" name="date" type="date" required>
+        </label>
+        <label class="field">Horário
+          <input id="f-time" name="time" type="time" required>
+        </label>
+      </div>
+      <div class="row">
+        <label class="field">Recorrência
+          <select id="f-repeat" name="repeatType">
+            <option value="Once">Única</option>
+            <option value="Daily">Diária</option>
+            <option value="Weekly">Semanal</option>
+            <option value="Monthly">Mensal</option>
+          </select>
+        </label>
+        <label class="field" id="f-interval-wrap" hidden>
+          <span id="f-interval-label">Repetir a cada</span>
+          <input id="f-interval" name="repeatInterval" type="number" min="1" max="365" value="1">
+        </label>
+      </div>
+      <p class="hint" id="f-date-hint" hidden>Em lembretes recorrentes, a data é a da primeira ocorrência.</p>
+      <div class="row">
+        <label class="field">Categoria
+          <select id="f-category" name="categoryId"></select>
+        </label>
+        <div class="field">Cor do post-it
+          <div class="color-row">
+            <input id="f-color" name="color" type="color" value="#FFE66D" aria-label="Cor do post-it">
+            <label class="check"><input id="f-use-category-color" type="checkbox" checked> Usar a cor da categoria</label>
+          </div>
+        </div>
+      </div>
+      <label class="check"><input id="f-active" type="checkbox" checked> Lembrete ativo</label>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="reminder-cancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="reminder-save">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="category-dialog" aria-labelledby="category-dialog-title">
+    <form id="category-form" method="dialog" novalidate>
+      <h2 id="category-dialog-title">Nova categoria</h2>
+      <p id="category-error" class="form-error" role="alert" hidden></p>
+      <label class="field">Nome
+        <input id="c-name" maxlength="40" autocomplete="off" required>
+      </label>
+      <label class="field">Cor
+        <input id="c-color" type="color" value="#4DA3FF">
+      </label>
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="category-cancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+    <form method="dialog">
+      <h2 id="confirm-title">Confirmar</h2>
+      <p id="confirm-message"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="confirm-cancel">Voltar</button>
+        <button type="button" class="btn btn-primary" id="confirm-ok">Confirmar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script src="panel.js"></script>
+</body>
+</html>

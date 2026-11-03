@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'">
+  <title>Lembrete</title>
+  <link rel="stylesheet" href="postit.css">
+</head>
+<body>
+  <article class="note" id="note" aria-live="polite">
+    <header class="note-head">
+      <span class="chip" id="category" hidden><span class="dot" id="category-dot"></span><span id="category-name"></span></span>
+      <span class="late" id="late" hidden>Atrasado</span>
+      <button class="close" id="close" type="button" title="Fechar e marcar como concluído" aria-label="Fechar e marcar como concluído">&times;</button>
+    </header>
+    <h1 id="title"></h1>
+    <p class="when" id="when"></p>
+    <div class="body" id="description"></div>
+    <footer class="note-foot">
+      <button class="done" id="done" type="button">Concluir</button>
+    </footer>
+  </article>
+  <script src="postit.js"></script>
+</body>
+</html>
