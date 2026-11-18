@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('node:path');
-const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, powerMonitor } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, powerMonitor, shell } = require('electron');
 const { openDatabase } = require('../infrastructure/persistence/database');
 const { createServices } = require('../application/compositionRoot');
 const { FileLogger } = require('../infrastructure/logging/logger');
@@ -10,14 +10,17 @@ const { TrayIconService } = require('../infrastructure/windows/trayIconService')
 const { StartupService } = require('../infrastructure/windows/startupService');
 const { WindowManager } = require('./windowManager');
 const { registerIpc } = require('./ipc');
+const { isHiddenLaunch, shouldOpenPanelForSecondInstance } = require('./launchArgs');
 
 const APP_NAME = 'ReminderDesk';
+// Mesma identidade do instalador: faz atalhos e o ícone fixado na barra de tarefas se agruparem com o app.
+const APP_ID = 'br.com.beirario.reminderdesk';
 const ASSETS = path.join(__dirname, '..', '..', 'assets');
 
 app.setName(APP_NAME);
 const dataDir = process.env.REMINDERDESK_DATA_DIR || path.join(app.getPath('appData'), APP_NAME);
 app.setPath('userData', dataDir);
-if (process.platform === 'win32') app.setAppUserModelId('br.com.beirario.reminderdesk');
+if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
 
 const logger = new FileLogger(path.join(dataDir, 'logs'));
 const state = { quitting: false };
@@ -40,7 +43,11 @@ function start() {
   let scheduler = null;
   let tray = null;
 
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
+    if (!shouldOpenPanelForSecondInstance(argv)) {
+      logger.info('Segunda execução automática (--hidden) descartada: o aplicativo já está em execução.');
+      return;
+    }
     logger.info('Segunda execução detectada: abrindo o painel da instância principal.');
     windowManager?.showPanel();
   });
@@ -72,7 +79,7 @@ function start() {
     services = createServices(db);
     const { bus, settingsService, occurrenceService, reminderService } = services;
 
-    const startup = new StartupService({ app, logger });
+    const startup = new StartupService({ app, shell, logger, appUserModelId: APP_ID });
     const iconPath = path.join(ASSETS, 'icon.png');
 
     windowManager = new WindowManager({ BrowserWindow, screen, services, state, logger, iconPath });
@@ -82,11 +89,15 @@ function start() {
       services,
       windowManager,
       logger,
+      createShortcut: () => startup.createDesktopShortcut(),
       appInfo: () => ({
         version: app.getVersion(),
         dataDir,
         startupSupported: startup.supported,
         startupEnabled: startup.isEnabled(),
+        startup: startup.diagnose(),
+        portable: startup.isPortable,
+        executablePath: startup.supported ? startup.executablePath : null,
       }),
     });
 
@@ -126,6 +137,12 @@ function start() {
 
     const settings = settingsService.get();
     startup.setEnabled(settings.startWithWindows);
+    const startupStatus = startup.diagnose();
+    if (startupStatus.supported) {
+      if (!startupStatus.targetExists) logger.warn(`O executável registrado para a inicialização não existe: ${startupStatus.executablePath}`);
+      if (!startupStatus.allowedByWindows) logger.warn('A inicialização está desativada no Windows (Gerenciador de Tarefas > Aplicativos de inicialização).');
+      if (startupStatus.portable) logger.warn('Versão portátil: a inicialização depende de o arquivo continuar no mesmo lugar. Prefira o instalador.');
+    }
 
     scheduler = new ReminderSchedulerService({
       occurrenceService,
@@ -140,7 +157,7 @@ function start() {
     powerMonitor.on('unlock-screen', () => scheduler.tick());
 
     // RN008: iniciado pelo Windows (--hidden), abre direto na bandeja; execução manual mostra o painel.
-    const launchedHidden = process.argv.includes('--hidden') && settings.startMinimized;
+    const launchedHidden = isHiddenLaunch() && settings.startMinimized;
     if (!launchedHidden) windowManager.showPanel();
 
     scheduler.start(); // recupera atrasados e exibidos não fechados na primeira passada

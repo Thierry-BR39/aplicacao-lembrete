@@ -5,7 +5,7 @@
  * { ok: true, data } ou { ok: false, error: { name, message, field } }, para
  * que erros de validação cheguem à interface sem expor stack traces.
  */
-function registerIpc({ ipcMain, services, windowManager, appInfo, logger }) {
+function registerIpc({ ipcMain, services, windowManager, appInfo, createShortcut, logger }) {
   const { reminderService, categoryService, occurrenceService, dashboardService, settingsService } = services;
 
   function handle(channel, fn) {
@@ -48,6 +48,7 @@ function registerIpc({ ipcMain, services, windowManager, appInfo, logger }) {
   handle('postit:get', ({ id }) => occurrenceService.getView(id));
   handle('postit:complete', ({ id }) => windowManager.completeOccurrence(id));
   handle('app:info', () => appInfo());
+  handle('app:createShortcut', () => ({ path: createShortcut() }));
 }
 
 module.exports = { registerIpc };

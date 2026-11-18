@@ -10,10 +10,18 @@ Baixe a versão mais recente na página de [Releases](https://github.com/Thierry
 
 | Arquivo | Para quê |
 |---|---|
-| `Reminder-Desk-Setup-1.0.0.exe` | Instalador. Recomendado para uso fixo: permite iniciar com o Windows. |
-| `Reminder-Desk-1.0.0-portable.exe` | Executável único, sem instalação. Basta abrir. |
+| `Reminder-Desk-Setup-1.0.2.exe` | **Instalador (recomendado).** Instala só para o seu usuário, sem precisar de administrador. Permite fixar na barra de tarefas e iniciar com o Windows. |
+| `Reminder-Desk-1.0.2-portable.exe` | Executável único, sem instalação, para uso eventual. |
 
 > Os executáveis não são assinados digitalmente. O Windows SmartScreen pode avisar na primeira execução: clique em **Mais informações → Executar assim mesmo**.
+
+### Instalador ou portátil?
+
+A versão **portátil** se descompacta numa pasta temporária a cada vez que abre e a apaga ao fechar. Por isso o Windows não consegue, de forma confiável, **iniciá-la junto com o computador** nem **manter o ícone fixado na barra de tarefas**: o endereço que ele guarda deixa de existir. Para o uso diário, use o **instalador**, que coloca o app numa pasta fixa (`%LOCALAPPDATA%\Programs\Reminder Desk`).
+
+**Instalando:** feche o Reminder Desk que estiver aberto (ícone da bandeja → **Sair**), rode o instalador e abra o app. Lembretes e configurações ficam em `%APPDATA%\ReminderDesk` e são mantidos. Depois, com o app aberto, clique com o botão direito no ícone dele na barra de tarefas e escolha **Fixar na barra de tarefas**.
+
+**Se não iniciar com o Windows:** abra **Configurações** no app. Abaixo de "Iniciar com o Windows" ele informa a situação real, inclusive se o Windows desativou a inicialização (Configurações do Windows → Aplicativos → Inicialização).
 
 ## Capturas de tela
 
@@ -69,7 +77,7 @@ Cada lembrete abre como uma janela independente, sempre sobre as demais, que só
 ```bash
 npm install
 npm start          # abre o painel; o ícone fica na bandeja
-npm test           # 63 testes automatizados
+npm test           # 73 testes automatizados
 npm run icons      # regenera assets/icon.png, icon.ico e tray.png
 npm run dist       # gera o instalador em dist/ (electron-builder)
 npm run portable   # gera o executável único e portátil em dist/
@@ -119,9 +127,12 @@ Janelas independentes, sem moldura, sempre no topo (`screen-saver` level), fora 
 ## Integração com o Windows
 
 - **Bandeja:** ícone com menu (Abrir, Novo lembrete, Consultar, Configurações, Sair).
-- **Inicialização automática:** `app.setLoginItemSettings` grava em `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` com `--hidden`. Só é aplicada no aplicativo instalado (em desenvolvimento apontaria para o `electron.exe`).
+- **Inicialização automática:** dois mecanismos independentes, ambos com `--hidden`: a chave `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` (via `app.setLoginItemSettings`) e um atalho na pasta Inicializar do usuário. Só são aplicados no app empacotado (em desenvolvimento apontariam para o `electron.exe`). A cada abertura o app regrava o caminho do executável atual, o que corrige entradas antigas.
+- **Versão portátil:** o caminho registrado é o do arquivo original (`PORTABLE_EXECUTABLE_FILE`), nunca o da pasta temporária de extração. Mesmo assim, só funciona enquanto o arquivo não mudar de lugar; o instalador é o recomendado.
+- **Identidade do app (AppUserModelID):** o app e os atalhos usam o mesmo `br.com.beirario.reminderdesk` do instalador, para o ícone fixado na barra de tarefas e a janela aberta se agruparem.
+- **Diagnóstico:** em Configurações, o app mostra se a inicialização está ativa, se o arquivo registrado existe e se o Windows a desativou. O mesmo é registrado no log.
 - **Iniciar minimizado:** iniciado pelo Windows com `--hidden` e a opção ligada, o painel não abre. Uma execução manual sempre mostra o painel.
-- **Instância única:** uma segunda execução apenas pede à principal que abra o painel.
+- **Instância única:** uma segunda execução apenas pede à principal que abra o painel; se ela veio da inicialização automática (`--hidden`), é descartada sem abrir nada.
 
 ## Banco de dados
 

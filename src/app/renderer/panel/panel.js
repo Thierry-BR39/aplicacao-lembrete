@@ -462,11 +462,30 @@
       return h('label', { class: 'setting' }, h('div', {}, h('div', {}, title), h('div', { class: 'desc' }, desc)), select);
     };
 
+    /** Mensagens sobre a situação real da inicialização automática (ver StartupService.diagnose). */
+    const startupNotes = () => {
+      const s = info.startup;
+      if (!s?.supported) return [];
+      const notes = [];
+      if (s.portable) {
+        notes.push({ warn: true, text: 'Versão portátil: o Windows só consegue iniciar o app e manter o ícone fixado na barra de tarefas se este arquivo ficar sempre no mesmo lugar. Para o uso diário, instale com o Reminder-Desk-Setup.' });
+      }
+      if (!s.targetExists) notes.push({ warn: true, text: `O arquivo registrado para a inicialização não foi encontrado: ${s.executablePath}` });
+      if (!s.allowedByWindows) {
+        notes.push({ warn: true, text: 'A inicialização está desativada no Windows. Abra Configurações > Aplicativos > Inicialização e ative o Reminder Desk.' });
+      }
+      if (s.registered && s.targetExists && s.allowedByWindows) {
+        notes.push({ warn: false, text: `Ativa: o app abre minimizado na bandeja ao entrar no Windows, a partir de ${s.executablePath}.` });
+      }
+      return notes;
+    };
+
     content.replaceChildren(
       pageHead('Configurações', 'Preferências do aplicativo.'),
       h('div', { class: 'settings' },
         toggle('startWithWindows', 'Iniciar com o Windows',
           info.startupSupported ? 'Executa o Reminder Desk automaticamente ao entrar no Windows.' : 'Disponível apenas no aplicativo instalado.', !info.startupSupported),
+        startupNotes().map((n) => h('p', { class: n.warn ? 'note warn' : 'note' }, n.text)),
         toggle('startMinimized', 'Iniciar minimizado na bandeja', 'Na inicialização do Windows, abre sem mostrar o painel.'),
         choice('theme', 'Tema visual', 'Aparência do painel principal.', [['dark', 'Escuro'], ['light', 'Claro']]),
         toggle('postitAlwaysOnTop', 'Post-its sempre sobre outras janelas', 'Mantém os lembretes visíveis acima dos demais aplicativos.'),
@@ -476,7 +495,20 @@
           h('div', {}, h('div', {}, 'Intervalo de verificação'), h('div', { class: 'desc' }, 'A cada quantos segundos o agendador procura lembretes (1 a 15).')),
           h('input', { type: 'number', min: 1, max: 15, value: settings.schedulerIntervalSeconds,
             onchange: (e) => save({ schedulerIntervalSeconds: Number(e.target.value) }) })),
-        h('p', { class: 'about' }, `Versão ${info.version} · Dados em ${info.dataDir}`)));
+        h('div', { class: 'setting' },
+          h('div', {},
+            h('div', {}, 'Atalho na Área de Trabalho'),
+            h('div', { class: 'desc' }, info.startupSupported
+              ? `Cria um atalho para ${info.executablePath}. Para fixar na barra de tarefas, clique com o botão direito no ícone do app aberto e escolha "Fixar na barra de tarefas".`
+              : 'Disponível apenas no aplicativo instalado ou portátil.')),
+          h('button', {
+            class: 'btn',
+            disabled: !info.startupSupported,
+            onclick: async () => {
+              try { await call('app:createShortcut'); toast('Atalho criado na Área de Trabalho.'); } catch (err) { toast(err.message, true); }
+            },
+          }, 'Criar atalho')),
+        h('p', { class: 'about' }, `Versão ${info.version}${info.portable ? ' (portátil)' : ''} · Dados em ${info.dataDir}`)));
   }
 
   // ------------------------------------------------------------------ boot

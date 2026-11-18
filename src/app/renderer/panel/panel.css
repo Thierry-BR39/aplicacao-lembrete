@@ -137,7 +137,10 @@ td .sub { color: var(--muted); font-size: 12px; margin-top: 2px; max-width: 320p
 
 .settings { max-width: 640px; display: flex; flex-direction: column; gap: 14px; }
 .setting { display: flex; align-items: center; justify-content: space-between; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; }
-.setting .desc { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.setting .desc { color: var(--muted); font-size: 12px; margin-top: 3px; overflow-wrap: anywhere; }
+.setting .btn { flex: none; }
+.note { margin: -6px 0 0; padding: 10px 14px; border-left: 3px solid var(--ok); background: var(--surface); border-radius: 0 8px 8px 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.note.warn { border-left-color: var(--accent); color: var(--text); }
 .setting select, .setting input[type="number"] { width: 230px; flex: none; }
 .about { color: var(--muted); font-size: 12px; line-height: 1.6; word-break: break-all; }
 

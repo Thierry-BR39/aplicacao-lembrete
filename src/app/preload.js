@@ -6,7 +6,7 @@ const INVOKE = new Set([
   'reminders:list', 'reminders:get', 'reminders:create', 'reminders:update', 'reminders:cancel', 'reminders:delete',
   'categories:list', 'categories:create', 'categories:update', 'categories:delete',
   'history:list', 'dashboard:get', 'settings:get', 'settings:update',
-  'postit:get', 'postit:complete', 'app:info',
+  'postit:get', 'postit:complete', 'app:info', 'app:createShortcut',
 ]);
 const EVENTS = new Set(['data-changed', 'navigate', 'settings-changed']);
 

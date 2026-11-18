@@ -1,7 +1,7 @@
 {
   "name": "reminderdesk",
   "productName": "Reminder Desk",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Lembretes visuais em post-its flutuantes para Windows.",
   "main": "src/app/main.js",
   "scripts": {
